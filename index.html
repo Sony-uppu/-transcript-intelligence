@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ARIA — AegisCloud Transcript Intelligence</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Space+Mono:wght@400;700&display=swap');
+:root{--bg:#050D1A;--bg2:#0A1628;--bg3:#0F1E35;--bg4:#162540;--teal:#00D4B8;--teal2:#00F5D8;--teal3:rgba(0,212,184,0.12);--amber:#FFB347;--red:#FF5B5B;--green:#36D68B;--white:#F0F8FF;--slate:#6B8299;--ls:#A8C4D8;--bdr:rgba(0,212,184,0.1);--bdr2:rgba(0,212,184,0.22)}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Space Grotesk',sans-serif;background:var(--bg);color:var(--white);display:flex;min-height:100vh;overflow-x:hidden}
+body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(rgba(0,212,184,0.025) 1px,transparent 1px),linear-gradient(90deg,rgba(0,212,184,0.025) 1px,transparent 1px);background-size:44px 44px;pointer-events:none;z-index:0}
+.sidebar{width:242px;background:linear-gradient(180deg,var(--bg2),var(--bg));border-right:1px solid var(--bdr);display:flex;flex-direction:column;position:fixed;top:0;left:0;bottom:0;z-index:100}
+.logo-area{padding:26px 20px 20px;border-bottom:1px solid var(--bdr)}
+.logo-ring{width:46px;height:46px;border:1.5px solid var(--teal);border-radius:14px;display:flex;align-items:center;justify-content:center;margin-bottom:11px;background:var(--teal3);position:relative}
+.logo-ring::after{content:'';position:absolute;inset:-4px;border-radius:18px;border:1px solid rgba(0,212,184,0.15)}
+.logo-mark{font-size:20px;font-weight:700;color:var(--teal2);font-family:'Space Mono',monospace}
+.logo-name{font-size:13px;font-weight:600;color:var(--white)}
+.logo-sub{font-size:10px;color:var(--slate);margin-top:2px}
+.nav-grp{padding:16px 14px 4px;font-size:9px;font-weight:700;letter-spacing:2.5px;color:var(--slate);text-transform:uppercase}
+.ni{display:flex;align-items:center;gap:10px;padding:10px 16px;margin:1px 8px;border-radius:10px;cursor:pointer;font-size:13px;font-weight:500;color:var(--ls);transition:all .2s;position:relative}
+.ni:hover{background:var(--teal3);color:var(--white)}
+.ni.on{background:var(--teal3);color:var(--teal2);border:1px solid var(--bdr2)}
+.ni.on::before{content:'';position:absolute;left:0;top:22%;bottom:22%;width:3px;background:var(--teal2);border-radius:0 3px 3px 0}
+.ni-ic{font-size:15px;width:20px;text-align:center}
+.nbadge{margin-left:auto;background:rgba(255,91,91,0.18);color:var(--red);font-size:10px;font-weight:700;padding:2px 7px;border-radius:20px;border:1px solid rgba(255,91,91,0.28)}
+.aria-card{margin:10px 10px 0;background:linear-gradient(135deg,rgba(0,212,184,0.07),rgba(0,212,184,0.02));border:1px solid var(--bdr2);border-radius:12px;padding:11px 13px}
+.aria-row{display:flex;align-items:center;gap:8px}
+.adot{width:8px;height:8px;border-radius:50%;background:var(--teal2);position:relative}
+.adot::after{content:'';position:absolute;inset:-3px;border-radius:50%;border:2px solid var(--teal);animation:ap 2s infinite}
+@keyframes ap{0%,100%{opacity:1;transform:scale(1)}50%{opacity:0;transform:scale(1.9)}}
+.aname{font-size:13px;font-weight:700;color:var(--teal2);font-family:'Space Mono',monospace}
+.alive{font-size:10px;color:var(--teal);margin-left:auto}
+.adesc{font-size:10px;color:var(--slate);margin-top:5px;line-height:1.45}
+.sbot{margin-top:auto;height:14px}
+.main{margin-left:242px;flex:1;position:relative;z-index:1}
+.topbar{background:rgba(10,22,40,0.85);border-bottom:1px solid var(--bdr);padding:13px 26px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:50;backdrop-filter:blur(20px)}
+.topbar h1{font-size:16px;font-weight:600}
+.topbar p{font-size:11px;color:var(--slate);margin-top:1px}
+.pills{display:flex;gap:8px}
+.pill{padding:5px 12px;border-radius:20px;font-size:11px;font-weight:600;border:1px solid}
+.pr{background:rgba(255,91,91,0.1);color:var(--red);border-color:rgba(255,91,91,0.22)}
+.pa{background:rgba(255,179,71,0.1);color:var(--amber);border-color:rgba(255,179,71,0.22)}
+.pt{background:rgba(0,212,184,0.1);color:var(--teal2);border-color:var(--bdr2)}
+.page{display:none;padding:22px 26px;animation:pi .28s ease}
+.page.on{display:block}
+@keyframes pi{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:none}}
+.g4{display:grid;grid-template-columns:repeat(4,1fr);gap:13px;margin-bottom:18px}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:18px}
+.g3{display:grid;grid-template-columns:repeat(3,1fr);gap:13px;margin-bottom:18px}
+.card{background:linear-gradient(135deg,rgba(15,30,53,0.9),rgba(10,22,40,0.9));border:1px solid var(--bdr);border-radius:16px;padding:20px;transition:border-color .2s}
+.card:hover{border-color:var(--bdr2)}
+.ct{font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--slate);margin-bottom:14px}
+.stat{background:linear-gradient(135deg,rgba(15,30,53,0.95),rgba(10,22,40,0.95));border:1px solid var(--bdr);border-radius:16px;padding:20px 18px;transition:all .25s;position:relative;overflow:hidden}
+.stat:hover{transform:translateY(-3px);border-color:var(--bdr2)}
+.stat::after{content:'';position:absolute;top:-30px;right:-30px;width:75px;height:75px;border-radius:50%;opacity:0.06}
+.st::after{background:var(--teal)}.sr::after{background:var(--red)}.sa::after{background:var(--amber)}.sg::after{background:var(--green)}
+.sic{width:34px;height:34px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:16px;margin-bottom:10px}
+.st .sic{background:rgba(0,212,184,0.1)}.sr .sic{background:rgba(255,91,91,0.1)}.sa .sic{background:rgba(255,179,71,0.1)}.sg .sic{background:rgba(54,214,139,0.1)}
+.sv{font-size:40px;font-weight:700;line-height:1;font-family:'Space Mono',monospace}
+.st .sv{color:var(--teal2)}.sr .sv{color:var(--red)}.sa .sv{color:var(--amber)}.sg .sv{color:var(--green)}
+.sl{font-size:12px;color:var(--slate);margin-top:4px}
+.alert{background:linear-gradient(90deg,rgba(255,91,91,0.09),rgba(255,91,91,0.03));border:1px solid rgba(255,91,91,0.18);border-radius:12px;padding:13px 16px;display:flex;align-items:center;gap:13px;margin-bottom:18px;font-size:13px}
+.alert strong{color:var(--red)}
+.ch{position:relative;height:255px}
+.cht{position:relative;height:335px}
+.strips{display:flex;gap:7px;margin-bottom:18px}
+.strip{flex:1;padding:15px;border-radius:12px;background:linear-gradient(135deg,rgba(15,30,53,0.9),rgba(10,22,40,0.9));border:1px solid}
+.strip.t{border-color:rgba(0,212,184,0.2)}.strip.r{border-color:rgba(255,91,91,0.2)}.strip.a{border-color:rgba(255,179,71,0.2)}.strip.g{border-color:rgba(54,214,139,0.2)}
+.slb{font-size:9px;font-weight:700;letter-spacing:2px;text-transform:uppercase;margin-bottom:5px}
+.strip.t .slb{color:var(--teal)}.strip.r .slb{color:var(--red)}.strip.a .slb{color:var(--amber)}.strip.g .slb{color:var(--green)}
+.svl{font-size:27px;font-weight:700;font-family:'Space Mono',monospace}
+.ssb{font-size:10px;color:var(--slate);margin-top:3px}
+.prow{margin-bottom:11px}
+.plbl{display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px}
+.plbl span:first-child{color:var(--ls)}.plbl span:last-child{font-family:'Space Mono',monospace;color:var(--teal2);font-weight:700}
+.pbar{height:5px;background:rgba(255,255,255,0.05);border-radius:3px;overflow:hidden}
+.pfill{height:100%;border-radius:3px;transition:width 1.2s cubic-bezier(.4,0,.2,1)}
+.rtbl{width:100%;border-collapse:collapse;font-size:13px}
+.rtbl th{background:rgba(22,37,64,0.8);color:var(--ls);font-size:9px;font-weight:700;letter-spacing:2px;text-transform:uppercase;padding:10px 13px;text-align:left}
+.rtbl td{padding:11px 13px;border-bottom:1px solid rgba(255,255,255,0.03)}
+.rtbl tr:hover td{background:rgba(0,212,184,0.03)}
+.cn{font-weight:600;color:var(--white)}
+.sc{font-family:'Space Mono',monospace;font-weight:700}
+.scc{color:var(--red)}.sch{color:var(--amber)}.scw{color:var(--slate)}
+.rbdg{display:inline-block;padding:3px 10px;border-radius:20px;font-size:10px;font-weight:700;border:1px solid}
+.rbc{background:rgba(255,91,91,0.1);color:var(--red);border-color:rgba(255,91,91,0.22)}
+.rbh{background:rgba(255,179,71,0.1);color:var(--amber);border-color:rgba(255,179,71,0.22)}
+.rbw{background:rgba(107,130,153,0.12);color:var(--slate);border-color:rgba(107,130,153,0.22)}
+.arow{display:flex;align-items:flex-start;gap:13px;padding:15px;background:linear-gradient(135deg,rgba(15,30,53,0.8),rgba(10,22,40,0.8));border-radius:12px;border:1px solid var(--bdr);margin-bottom:9px;transition:border-color .2s}
+.arow:hover{border-color:var(--bdr2)}
+.abdg{padding:5px 11px;border-radius:8px;font-size:10px;font-weight:700;flex-shrink:0;font-family:'Space Mono',monospace}
+.abc{background:rgba(255,91,91,0.13);color:var(--red);border:1px solid rgba(255,91,91,0.28)}
+.abh{background:rgba(255,179,71,0.13);color:var(--amber);border:1px solid rgba(255,179,71,0.28)}
+.abm{background:rgba(0,212,184,0.1);color:var(--teal2);border:1px solid var(--bdr2)}
+.at{font-weight:600;font-size:13.5px;margin-bottom:4px}
+.ad{font-size:12px;color:var(--slate);line-height:1.55}
+.cwrap{display:flex;flex-direction:column;background:linear-gradient(180deg,rgba(10,22,40,0.97),rgba(5,13,26,0.99));border:1px solid var(--bdr);border-radius:18px;overflow:hidden;height:calc(100vh - 148px);max-height:700px}
+.ahdr{padding:16px 22px;border-bottom:1px solid var(--bdr);display:flex;align-items:center;gap:13px;background:linear-gradient(90deg,rgba(0,212,184,0.07),transparent)}
+.aav{width:44px;height:44px;border-radius:13px;background:linear-gradient(135deg,rgba(0,212,184,0.28),rgba(0,212,184,0.04));border:1px solid var(--bdr2);display:flex;align-items:center;justify-content:center;font-family:'Space Mono',monospace;font-size:13px;font-weight:700;color:var(--teal2);position:relative}
+.aav::after{content:'';position:absolute;bottom:-2px;right:-2px;width:9px;height:9px;border-radius:50%;background:var(--teal2);border:2px solid var(--bg2)}
+.ahinfo strong{font-size:16px;font-weight:700;color:var(--teal2);font-family:'Space Mono',monospace}
+.ahinfo span{font-size:10px;color:var(--slate);display:block;margin-top:2px}
+.ahright{margin-left:auto;text-align:right}
+.amodel{font-size:10px;color:var(--slate);font-family:'Space Mono',monospace}
+.apow{font-size:10px;color:var(--teal);margin-top:2px}
+.cmsgs{flex:1;overflow-y:auto;padding:18px 22px;display:flex;flex-direction:column;gap:14px;scrollbar-width:thin;scrollbar-color:var(--bg4) transparent}
+.cmsg{display:flex;gap:9px;animation:pi .25s ease}
+.cmsg.u{flex-direction:row-reverse}
+.cav2{width:30px;height:30px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0;font-family:'Space Mono',monospace}
+.cava{background:linear-gradient(135deg,rgba(0,212,184,0.22),rgba(0,212,184,0.04));color:var(--teal2);border:1px solid var(--bdr2)}
+.cavu{background:var(--bg3);color:var(--ls)}
+.cbub{max-width:78%;padding:11px 15px;border-radius:13px;font-size:13px;line-height:1.65}
+.cba{background:var(--bg3);color:var(--ls);border:1px solid var(--bdr);border-radius:4px 13px 13px 13px}
+.cbu{background:linear-gradient(135deg,var(--teal),#009E8A);color:var(--bg);font-weight:500;border-radius:13px 4px 13px 13px}
+.csugg{display:flex;flex-wrap:wrap;gap:7px;padding:10px 22px;border-top:1px solid rgba(255,255,255,0.04);background:rgba(10,22,40,0.5)}
+.sg2{padding:6px 12px;border-radius:20px;background:rgba(0,212,184,0.05);border:1px solid var(--bdr);color:var(--teal2);font-size:11px;cursor:pointer;font-family:'Space Grotesk',sans-serif;transition:all .18s}
+.sg2:hover{background:var(--teal3);border-color:var(--bdr2)}
+.cia{padding:13px 22px;border-top:1px solid var(--bdr);display:flex;gap:9px;background:rgba(5,13,26,0.8)}
+.ci{flex:1;background:var(--bg3);border:1px solid var(--bdr);border-radius:11px;padding:11px 15px;color:var(--white);font-family:'Space Grotesk',sans-serif;font-size:13px;outline:none;transition:border-color .2s}
+.ci:focus{border-color:var(--teal)}
+.ci::placeholder{color:var(--slate)}
+.csnd{background:linear-gradient(135deg,var(--teal),#009E8A);color:var(--bg);border:none;border-radius:11px;padding:11px 20px;font-weight:700;font-size:13px;cursor:pointer;font-family:'Space Grotesk',sans-serif;transition:all .2s;white-space:nowrap}
+.csnd:hover{transform:scale(1.02)}
+.csnd:disabled{opacity:.4;cursor:not-allowed;transform:none}
+.tdots{display:flex;gap:4px;align-items:center;padding:3px 0}
+.td{width:6px;height:6px;border-radius:50%;background:var(--teal);animation:td 1.2s infinite}
+.td:nth-child(2){animation-delay:.2s}.td:nth-child(3){animation-delay:.4s}
+@keyframes td{0%,80%,100%{transform:translateY(0)}40%{transform:translateY(-5px)}}
+::-webkit-scrollbar{width:4px}
+::-webkit-scrollbar-thumb{background:var(--bg4);border-radius:2px}
+</style>
+</head>
+<body>
+<aside class="sidebar">
+  <div class="logo-area">
+    <div class="logo-ring"><div class="logo-mark">A</div></div>
+    <div class="logo-name">Transcript Intelligence</div>
+    <div class="logo-sub">AegisCloud · 105 calls analysed</div>
+  </div>
+  <div class="nav-grp">Analysis</div>
+  <div class="ni on" onclick="go('overview',this)"><span class="ni-ic">📊</span> Overview</div>
+  <div class="ni" onclick="go('sentiment',this)"><span class="ni-ic">💬</span> Sentiment</div>
+  <div class="ni" onclick="go('risk',this)"><span class="ni-ic">⚠️</span> Customer Risk <span class="nbadge">8</span></div>
+  <div class="ni" onclick="go('gaps',this)"><span class="ni-ic">🔧</span> Feature Gaps</div>
+  <div class="nav-grp">Actions</div>
+  <div class="ni" onclick="go('recs',this)"><span class="ni-ic">✅</span> Recommendations</div>
+  <div class="ni" onclick="go('aria',this)"><span class="ni-ic">🤖</span> Ask ARIA</div>
+  <div class="sbot"></div>
+  <div class="aria-card">
+    <div class="aria-row"><div class="adot"></div><div class="aname">ARIA</div><div class="alive">● Live</div></div>
+    <div class="adesc">AegisCloud Real-time Intelligence Analyst · Powered by Claude AI</div>
+  </div>
+  <div style="height:14px"></div>
+</aside>
+<main class="main">
+  <div class="topbar">
+    <div><h1 id="ptitle">Overview</h1><p>AegisCloud Transcript Intelligence · 105 calls · 35 customers</p></div>
+    <div class="pills">
+      <span class="pill pr">23 High Risk</span>
+      <span class="pill pa">63 Churn Signals</span>
+      <span class="pill pt">52 Feature Gaps</span>
+    </div>
+  </div>
+
+  <!-- OVERVIEW -->
+  <div class="page on" id="page-overview">
+    <div class="g4">
+      <div class="stat st"><div class="sic">📋</div><div class="sv" id="c1">0</div><div class="sl">Transcripts Analyzed</div></div>
+      <div class="stat sr"><div class="sic">🚨</div><div class="sv" id="c2">0</div><div class="sl">High-Risk Calls</div></div>
+      <div class="stat sa"><div class="sic">⚡</div><div class="sv" id="c3">0</div><div class="sl">Churn Signals</div></div>
+      <div class="stat sg"><div class="sic">🔍</div><div class="sv" id="c4">0</div><div class="sl">Feature Gaps</div></div>
+    </div>
+    <div class="alert"><span style="font-size:20px;flex-shrink:0">🚨</span><div><strong>Immediate action required:</strong> 4 accounts score below 2.0 — Trailhead (1.4), Blackridge (1.6), Cobalt (1.8), Northstar (2.1). Pre-churn state, not complaints.</div></div>
+    <div class="g2">
+      <div class="card"><div class="ct">Call Volume by Theme</div><div class="ch"><canvas id="tc"></canvas></div></div>
+      <div class="card">
+        <div class="ct">Call Type Distribution</div>
+        <div class="ch" style="height:160px"><canvas id="dc"></canvas></div>
+        <div style="margin-top:18px">
+          <div class="prow"><div class="plbl"><span>External — customer calls</span><span>70</span></div><div class="pbar"><div class="pfill" style="width:0%;background:var(--teal)" data-w="67"></div></div></div>
+          <div class="prow"><div class="plbl"><span>Internal — team syncs</span><span>30</span></div><div class="pbar"><div class="pfill" style="width:0%;background:var(--bg4)" data-w="29"></div></div></div>
+          <div class="prow"><div class="plbl"><span>Support — synthetic added</span><span>5</span></div><div class="pbar"><div class="pfill" style="width:0%;background:var(--amber)" data-w="5"></div></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SENTIMENT -->
+  <div class="page" id="page-sentiment">
+    <div class="strips">
+      <div class="strip r"><div class="slb">Lowest — Incident</div><div class="svl" style="color:var(--red)">2.53</div><div class="ssb">Pre-churn territory</div></div>
+      <div class="strip a"><div class="slb">Watch — Renewal</div><div class="svl" style="color:var(--amber)">3.16</div><div class="ssb">Hides churn signals</div></div>
+      <div class="strip g"><div class="slb">Strong — Compliance</div><div class="svl" style="color:var(--green)">3.62</div><div class="ssb">Highest trust zone</div></div>
+      <div class="strip t"><div class="slb">Best — Onboarding</div><div class="svl" style="color:var(--teal2)">4.60</div><div class="ssb">New customers love it</div></div>
+    </div>
+    <div class="card"><div class="ct">Average Sentiment Score by Theme — 1 worst · 5 best · Red = at risk · Green = healthy</div><div class="cht"><canvas id="sc"></canvas></div></div>
+  </div>
+
+  <!-- RISK -->
+  <div class="page" id="page-risk">
+    <div class="alert"><span style="font-size:20px;flex-shrink:0">⚡</span><div><strong>Top 4 need executive + CSM outreach within 5 days.</strong> Sentiment below 2.0 with 3+ churn signals = pre-churn state.</div></div>
+    <div class="card"><div class="ct">Customer Risk Radar — 8 Accounts</div>
+      <table class="rtbl"><thead><tr><th>Customer</th><th>Score</th><th>Churn Signals</th><th>Theme</th><th>Status</th></tr></thead><tbody id="rtb"></tbody></table>
+    </div>
+    <div class="card" style="margin-top:16px"><div class="ct">Risk Score vs Churn Signal Map</div><div class="ch"><canvas id="rc"></canvas></div></div>
+  </div>
+
+  <!-- GAPS -->
+  <div class="page" id="page-gaps">
+    <div class="g2">
+      <div class="card"><div class="ct">52 Feature Gaps — Distribution</div><div class="cht"><canvas id="gc2"></canvas></div></div>
+      <div class="card">
+        <div class="ct">Gap Breakdown</div>
+        <div style="margin-bottom:18px">
+          <div class="prow"><div class="plbl"><span>Identity & Access</span><span>20</span></div><div class="pbar"><div class="pfill" style="width:0%;background:var(--teal)" data-w="38"></div></div></div>
+          <div class="prow"><div class="plbl"><span>SIEM / Connector UX</span><span>13</span></div><div class="pbar"><div class="pfill" style="width:0%;background:var(--bg4)" data-w="25"></div></div></div>
+          <div class="prow"><div class="plbl"><span>Compliance Reporting</span><span>10</span></div><div class="pbar"><div class="pfill" style="width:0%;background:var(--amber)" data-w="19"></div></div></div>
+          <div class="prow"><div class="plbl"><span>Detect / Alerting</span><span>7</span></div><div class="pbar"><div class="pfill" style="width:0%;background:var(--red)" data-w="13"></div></div></div>
+          <div class="prow"><div class="plbl"><span>Other</span><span>2</span></div><div class="pbar"><div class="pfill" style="width:0%;background:var(--slate)" data-w="4"></div></div></div>
+        </div>
+        <div style="border-top:1px solid var(--bdr);padding-top:14px;display:flex;flex-direction:column;gap:9px">
+          <div style="padding:11px;background:rgba(0,212,184,0.06);border-radius:10px;border-left:3px solid var(--teal)"><div style="font-size:12px;font-weight:700;color:var(--teal2);margin-bottom:3px">Identity & Access — 20 gaps</div><div style="font-size:11px;color:var(--slate)">Nested roles, JIT provisioning, conditional MFA. Enterprise table-stakes.</div></div>
+          <div style="padding:11px;background:rgba(22,37,64,0.5);border-radius:10px;border-left:3px solid var(--bg4)"><div style="font-size:12px;font-weight:700;color:var(--ls);margin-bottom:3px">SIEM Connector — 13 gaps</div><div style="font-size:11px;color:var(--slate)">6-page config vs competitor 3-click. Named in deal-loss calls.</div></div>
+          <div style="padding:11px;background:rgba(255,179,71,0.06);border-radius:10px;border-left:3px solid var(--amber)"><div style="font-size:12px;font-weight:700;color:var(--amber);margin-bottom:3px">Compliance Reports — 10 gaps</div><div style="font-size:11px;color:var(--slate)">3 enterprise customers blocked on live audits today.</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- RECS -->
+  <div class="page" id="page-recs">
+    <div class="g3" style="margin-bottom:16px">
+      <div class="stat sr" style="padding:15px 17px"><div class="sv" style="font-size:30px">2</div><div class="sl">Critical Actions</div></div>
+      <div class="stat sa" style="padding:15px 17px"><div class="sv" style="font-size:30px">2</div><div class="sl">High Priority</div></div>
+      <div class="stat st" style="padding:15px 17px"><div class="sv" style="font-size:30px">1</div><div class="sl">Medium Priority</div></div>
+    </div>
+    <div class="arow"><span class="abdg abc">CRITICAL</span><div><div class="at">Escalate 8 at-risk accounts within 5 days</div><div class="ad">Trailhead (1.4) · Blackridge (1.6) · Cobalt (1.8) · Northstar (2.1) — executive + CSM outreach now. Sentiment below 2.0 with 3+ churn signals is pre-churn, not a complaint queue.</div></div></div>
+    <div class="arow"><span class="abdg abc">CRITICAL</span><div><div class="at">Fix the LogVault SIEM connector UX</div><div class="ad">SentinelShield wins deals in 3 clicks. AegisCloud needs a 6-page guide. Named in deal-loss calls. Engineering effort: days. ARR impact: material.</div></div></div>
+    <div class="arow"><span class="abdg abh">HIGH</span><div><div class="at">Ship on-demand compliance reporting</div><div class="ad">Three enterprise customers are blocked on active audit deliverables today. Compliance is the highest-trust theme — one missing feature is eroding the product's biggest strength.</div></div></div>
+    <div class="arow"><span class="abdg abh">HIGH</span><div><div class="at">Sequence Identity gaps into Q3 roadmap</div><div class="ad">Nested role inheritance + JIT provisioning are the top two gaps across all Identity calls. Enterprise table-stakes. Customers are evaluating alternatives because of these two.</div></div></div>
+    <div class="arow"><span class="abdg abm">MEDIUM</span><div><div class="at">Deploy this pipeline as a live internal product</div><div class="ad">Wire to live call ingestion — CSM risk dashboards, renewal scoring, and competitive tracking appear automatically at no additional data cost.</div></div></div>
+  </div>
+
+  <!-- ARIA -->
+  <div class="page" id="page-aria">
+    <div class="cwrap">
+      <div class="ahdr">
+        <div class="aav">AR</div>
+        <div class="ahinfo"><strong>ARIA</strong><span>AegisCloud Real-time Intelligence Analyst · 105 transcripts loaded</span></div>
+        <div class="ahright"><div class="amodel">claude-sonnet-4</div><div class="apow">● Powered by Anthropic</div></div>
+      </div>
+      <div class="csugg">
+        <span class="sg2" onclick="ask(this)">Which customers are closest to churning?</span>
+        <span class="sg2" onclick="ask(this)">What's the #1 product gap to fix?</span>
+        <span class="sg2" onclick="ask(this)">Why are incident calls scoring so low?</span>
+        <span class="sg2" onclick="ask(this)">What should the PM prioritise in Q3?</span>
+        <span class="sg2" onclick="ask(this)">Who is SentinelShield and why do they matter?</span>
+        <span class="sg2" onclick="ask(this)">How does this pipeline work technically?</span>
+      </div>
+      <div class="cmsgs" id="msgs">
+        <div class="cmsg">
+          <div class="cav2 cava">AR</div>
+          <div class="cbub cba">Hi — I'm <strong style="color:var(--teal2)">ARIA</strong>, AegisCloud Real-time Intelligence Analyst.<br><br>I've processed all 105 call transcripts. Ask me anything — which customers are at risk, what product gaps matter most, what the data means, or how this pipeline was built.</div>
+        </div>
+      </div>
+      <div class="cia">
+        <input class="ci" id="ci" type="text" placeholder="Ask ARIA anything about the transcript data..." onkeydown="if(event.key==='Enter')send()">
+        <button class="csnd" id="cbtn" onclick="send()">Ask ARIA →</button>
+      </div>
+    </div>
+  </div>
+</main>
+
+<script>
+const CUSTS=[{n:'Trailhead Marketplace',s:1.4,c:3,t:'Incident & Outage',l:'CRITICAL'},{n:'Blackridge Investments',s:1.6,c:4,t:'Incident & Outage',l:'CRITICAL'},{n:'Cobalt Software',s:1.8,c:3,t:'Incident & Outage',l:'CRITICAL'},{n:'Northstar Pharma',s:2.1,c:3,t:'Incident & Outage',l:'CRITICAL'},{n:'Coastal Living Co',s:2.2,c:3,t:'Security & Identity',l:'HIGH'},{n:'Vanta Health',s:2.4,c:2,t:'Technical Support',l:'HIGH'},{n:'Ridgeline Logistics',s:2.63,c:3,t:'Incident & Outage',l:'HIGH'},{n:'Summit Trust',s:2.87,c:3,t:'Renewal & Churn',l:'WATCH'}];
+const CTX=`You are ARIA — AegisCloud Real-time Intelligence Analyst. Answer concisely in plain English under 150 words. Lead with the direct answer, use specific numbers. Data: 105 transcripts (70 external, 30 internal, 5 synthetic). 35 customers. 63 churn signals. 52 feature gaps. 407 action items. Themes: Compliance & Audit (67 calls, 3.62/5), Incident & Outage (20, 2.53/5 lowest), Security & Identity (5, 3.16), Renewal & Churn (5, 3.16), Product (3, 3.77), Onboarding (2, 4.60). At-risk: Trailhead 1.4 CRITICAL, Blackridge 1.6 CRITICAL, Cobalt 1.8 CRITICAL, Northstar 2.1 CRITICAL, Coastal Living 2.2 HIGH, Vanta 2.4 HIGH, Ridgeline 2.63 HIGH, Summit Trust 2.87 WATCH. Top gaps: Identity & Access (20), SIEM Connector LogVault (13 — 6-page guide vs competitor 3-click named in deal-loss calls), Compliance Reporting (10 — 3 customers blocked on audits), Detect/Alerting (7). Competitors: SentinelShield (13 calls), VaultEdge (7), CyberNova (5). Key insight: incidents = churn problem not support problem. Every at-risk account has an unresolved incident. Pipeline: Python 3.12, keyword classification over LLM-extracted topics. Production: S3/GCS → Lambda/Cloud Function → BigQuery → Grafana on Kubernetes with Terraform + OpenTelemetry.`;
+const titles={overview:'Overview',sentiment:'Sentiment Analysis',risk:'Customer Risk Radar',gaps:'Feature Gaps',recs:'Recommendations',aria:'Ask ARIA'};
+function go(id,el){document.querySelectorAll('.page').forEach(p=>p.classList.remove('on'));document.querySelectorAll('.ni').forEach(n=>n.classList.remove('on'));document.getElementById('page-'+id).classList.add('on');if(el)el.classList.add('on');document.getElementById('ptitle').textContent=titles[id]||id;setTimeout(bars,120)}
+function cnt(el,v){let x=0,s=v/70;const t=setInterval(()=>{x=Math.min(x+s,v);el.textContent=Math.floor(x);if(x>=v)clearInterval(t)},16)}
+function bars(){document.querySelectorAll('.pfill[data-w]').forEach(b=>b.style.width=b.dataset.w+'%')}
+const gc='rgba(255,255,255,0.05)',tc='#6B8299';
+function charts(){
+  new Chart(document.getElementById('tc'),{type:'bar',data:{labels:['Compliance & Audit','Incident & Outage','Security & Identity','Renewal & Churn','Product & Roadmap','Technical Support','Onboarding'],datasets:[{data:[67,20,5,5,3,2,2],backgroundColor:['#00D4B8','#FF5B5B','#6B8299','#6B8299','#6B8299','#6B8299','#00D4B8'],borderRadius:5,borderSkipped:false}]},options:{indexAxis:'y',plugins:{legend:{display:false}},animation:{duration:900},scales:{x:{grid:{color:gc},ticks:{color:tc},border:{color:'transparent'}},y:{grid:{display:false},ticks:{color:'#A8C4D8',font:{size:11}}}}}});
+  new Chart(document.getElementById('dc'),{type:'doughnut',data:{labels:['External','Internal','Support'],datasets:[{data:[70,30,5],backgroundColor:['#00D4B8','#162540','#FFB347'],borderWidth:0,hoverOffset:6}]},options:{cutout:'62%',plugins:{legend:{display:true,position:'right',labels:{color:'#A8C4D8',font:{size:11},padding:10,boxWidth:10}}},animation:{duration:900}}});
+  new Chart(document.getElementById('sc'),{type:'bar',data:{labels:['Incident & Outage','Technical Support','Security & Identity','Renewal & Churn','Compliance & Audit','Product & Roadmap','Onboarding'],datasets:[{data:[2.53,2.60,3.16,3.16,3.62,3.77,4.60],backgroundColor:['#FF5B5B','#FF5B5B','#FFB347','#FFB347','#36D68B','#36D68B','#36D68B'],borderRadius:5,borderSkipped:false}]},options:{indexAxis:'y',plugins:{legend:{display:false}},animation:{duration:900},scales:{x:{min:0,max:5,grid:{color:gc},ticks:{color:tc},border:{color:'transparent'}},y:{grid:{display:false},ticks:{color:'#A8C4D8',font:{size:11}}}}}});
+  new Chart(document.getElementById('rc'),{type:'bubble',data:{datasets:[{label:'CRITICAL',data:CUSTS.filter(c=>c.l==='CRITICAL').map(c=>({x:c.s,y:c.c,r:12})),backgroundColor:'rgba(255,91,91,0.5)',borderColor:'#FF5B5B'},{label:'HIGH',data:CUSTS.filter(c=>c.l==='HIGH').map(c=>({x:c.s,y:c.c,r:12})),backgroundColor:'rgba(255,179,71,0.5)',borderColor:'#FFB347'},{label:'WATCH',data:CUSTS.filter(c=>c.l==='WATCH').map(c=>({x:c.s,y:c.c,r:12})),backgroundColor:'rgba(107,130,153,0.4)',borderColor:'#6B8299'}]},options:{animation:{duration:900},scales:{x:{title:{display:true,text:'Sentiment Score',color:tc},min:1,max:3.5,grid:{color:gc},ticks:{color:tc},border:{color:'transparent'}},y:{title:{display:true,text:'Churn Signals',color:tc},min:0,max:5,grid:{color:gc},ticks:{color:tc},border:{color:'transparent'}}},plugins:{legend:{labels:{color:'#A8C4D8',font:{size:11}}}}}});
+  new Chart(document.getElementById('gc2'),{type:'doughnut',data:{labels:['Identity & Access','SIEM Connector','Compliance Reporting','Detect / Alerting','Other'],datasets:[{data:[20,13,10,7,2],backgroundColor:['#00D4B8','#162540','#FFB347','#FF5B5B','#6B8299'],borderWidth:0,hoverOffset:8}]},options:{cutout:'54%',plugins:{legend:{display:true,position:'bottom',labels:{color:'#A8C4D8',font:{size:11},padding:12,boxWidth:11}}},animation:{duration:900}}});
+}
+function buildTable(){
+  const b=document.getElementById('rtb');
+  CUSTS.forEach(c=>{const sc=c.l==='CRITICAL'?'scc':c.l==='HIGH'?'sch':'scw';const rb=c.l==='CRITICAL'?'rbc':c.l==='HIGH'?'rbh':'rbw';b.innerHTML+=`<tr><td class="cn">${c.n}</td><td class="sc ${sc}">${c.s}</td><td style="color:var(--ls);font-family:'Space Mono',monospace">${c.c}</td><td style="color:var(--slate);font-size:12px">${c.t}</td><td><span class="rbdg ${rb}">${c.l}</span></td></tr>`;});
+}
+function addMsg(role,html){const w=document.getElementById('msgs');const d=document.createElement('div');d.className='cmsg'+(role==='user'?' u':'');const ac=role==='user'?'cavu':'cava',bc=role==='user'?'cbu':'cba',lb=role==='user'?'👤':'AR';d.innerHTML=`<div class="cav2 ${ac}">${lb}</div><div class="cbub ${bc}">${html}</div>`;w.appendChild(d);w.scrollTop=w.scrollHeight}
+function addTyping(){const w=document.getElementById('msgs');const d=document.createElement('div');d.className='cmsg';d.id='typing';d.innerHTML=`<div class="cav2 cava">AR</div><div class="cbub cba"><div class="tdots"><div class="td"></div><div class="td"></div><div class="td"></div></div></div>`;w.appendChild(d);w.scrollTop=w.scrollHeight}
+async function send(){const inp=document.getElementById('ci'),btn=document.getElementById('cbtn');const q=inp.value.trim();if(!q)return;addMsg('user',q);inp.value='';btn.disabled=true;addTyping();try{const r=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1000,system:CTX,messages:[{role:'user',content:q}]})});const data=await r.json();document.getElementById('typing')?.remove();addMsg('ai',(data.content?.[0]?.text||'No response').replace(/\n/g,'<br>'));}catch(e){document.getElementById('typing')?.remove();addMsg('ai','Connection error. Please check your internet and try again.');}btn.disabled=false}
+function ask(el){document.getElementById('ci').value=el.textContent;send()}
+window.addEventListener('load',()=>{cnt(document.getElementById('c1'),105);cnt(document.getElementById('c2'),23);cnt(document.getElementById('c3'),63);cnt(document.getElementById('c4'),52);charts();buildTable();bars()});
+</script>
+</body>
+</html>
