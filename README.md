@@ -69,7 +69,7 @@ AegisCloud had 105 recorded customer calls with no systematic analysis. This pip
 
 ## Pipeline — How It Works
 
-The notebook (`analysis.ipynb`) runs in 23 cells across four stages:
+The notebook (`transcript_pipeline.ipynb`) runs in 23 cells across four stages:
 
 ### Stage 1 — Load Dataset
 Reads `meeting-info.json` and `summary.json` from all 100 folders. The summaries already contain AI-extracted sentiment scores, topics, action items, and key moments — AegisCloud's platform had already done an LLM pass over the raw transcripts.
